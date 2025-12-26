@@ -6,7 +6,7 @@ import { successResponse, errorResponse } from "../utils/responses"
 const eventService = new EventService()
 
 export class EventController {
-  async getAll(req: AuthRequest, res: Response): Promise<void> {
+  async getAll(_req: AuthRequest, res: Response): Promise<void> {
     try {
       const events = await eventService.getAllPublic()
       successResponse(res, events)

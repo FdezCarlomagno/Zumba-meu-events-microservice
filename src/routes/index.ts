@@ -8,7 +8,7 @@ router.use("/auth", authRoutes)
 router.use("/events", eventRoutes)
 
 // Health check endpoint
-router.get("/health", (req, res) => {
+router.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() })
 })
 
