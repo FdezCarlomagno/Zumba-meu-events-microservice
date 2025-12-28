@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express"
 import { verifyToken } from "../utils/jwt"
-import { errorResponse } from "../utils/responses"
+import { createResponse } from "../utils/responses"
 import type { AuthPayload } from "../types"
 
 export interface AuthRequest extends Request {
@@ -12,7 +12,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     const authHeader = req.headers.authorization
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      errorResponse(res, "No token provided", 401)
+      createResponse(res, null, 401, "No token provided", true)
       return
     }
 
@@ -23,11 +23,11 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
       req.admin = decoded
       next()
     } catch (error) {
-      errorResponse(res, "Invalid or expired token", 401)
+      createResponse(res, null, 401, "Invalid or expired token", true)
       return
     }
   } catch (error) {
-    errorResponse(res, "Authentication failed", 401)
+    createResponse(res, error, 401, "Authentication failed", true)
     return
   }
 }

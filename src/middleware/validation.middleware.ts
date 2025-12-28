@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express"
 import { z } from "zod"
-import { errorResponse } from "../utils/responses"
+import { createResponse } from "../utils/responses"
 
 export const validate = (schema: z.ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -14,13 +14,13 @@ export const validate = (schema: z.ZodSchema) => {
           message: err.message,
         }))
         res.status(400).json({
-          success: false,
-          error: "Validation failed",
-          details: errors,
+          error: true,
+          message: "Validation failed",
+          data: errors,
         })
         return
       }
-      errorResponse(res, "Validation error", 400)
+      createResponse(res, [], 400, "Validation error", true)
       return
     }
   }
