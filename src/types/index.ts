@@ -1,18 +1,27 @@
+export type EventStatus = "upcoming" | "live" | "finished" | "none"
+
+export interface ApiResponse<T> {
+  error: boolean,
+  message?: string
+  data?: T
+}
+
 export interface Event {
   id: string
   title: string
   slug: string
-  description: string
-  startDate: Date
-  endDate: Date
-  status: "draft" | "upcoming" | "past" | "cancelled"
+  description?: string
+  startDate: Date | string
+  endDate: Date | string
+  status: EventStatus
   location: string | null
   ctaText: string | null
   ctaUrl: string | null
   isFeatured: boolean
-  createdAt: Date
-  updatedAt: Date
+  createdAt: Date | string 
+  updatedAt: Date | string
 }
+
 
 export interface Admin {
   id: string

@@ -1,7 +1,7 @@
 import type { Response } from "express"
 import type { AuthRequest } from "../middleware/auth.middleware"
 import { EventService } from "../services/event.service"
-import { successResponse, errorResponse } from "../utils/responses"
+import { createResponse } from "../utils/responses"
 
 const eventService = new EventService()
 
@@ -9,10 +9,10 @@ export class EventController {
   async getAll(_req: AuthRequest, res: Response): Promise<void> {
     try {
       const events = await eventService.getAllPublic()
-      successResponse(res, events)
+      createResponse(res, events, 200, "Events retrieved succesfully", false)
     } catch (error) {
       console.error("Get all events error:", error)
-      errorResponse(res, "Failed to fetch events", 500)
+      createResponse(res, [], 500, "Failed to fetch events", true)
     }
   }
 
@@ -22,36 +22,40 @@ export class EventController {
       const event = await eventService.getById(id, false)
 
       if (!event) {
-        errorResponse(res, "Event not found", 404)
+        createResponse(res, null, 404, "Event not found", true)
         return
       }
 
-      successResponse(res, event)
+      createResponse(res, event, 200, "Event retrieved successfully", false)
     } catch (error) {
       console.error("Get event by ID error:", error)
-      errorResponse(res, "Failed to fetch event", 500)
+      createResponse(res, null, 500, "Failed to fetch event", true)
     }
   }
 
-  async create(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const eventData = {
-        ...req.body,
-        startDate: new Date(req.body.startDate),
-        endDate: new Date(req.body.endDate),
-      }
 
-      const event = await eventService.create(eventData)
-      successResponse(res, event, 201)
-    } catch (error: any) {
-      console.error("Create event error:", error)
-      if (error.message.includes("already exists")) {
-        errorResponse(res, error.message, 409)
-        return
-      }
-      errorResponse(res, "Failed to create event", 500)
+ async create(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const eventData = {
+      ...req.body,
+      startDate: new Date(req.body.startDate),
+      endDate: new Date(req.body.endDate),
     }
+
+    const event = await eventService.create(eventData)
+    createResponse(res, event, 201, "Event created successfully")
+  } catch (error: any) {
+    console.error("Create event error:", error)
+
+    if (error.message.includes("already exists")) {
+      createResponse(res, null, 409, error.message, true)
+      return
+    }
+
+    createResponse(res, null, 500, "Failed to create event", true)
   }
+}
+
 
   async update(req: AuthRequest, res: Response): Promise<void> {
     try {
@@ -68,18 +72,18 @@ export class EventController {
       const event = await eventService.update(id, eventData)
 
       if (!event) {
-        errorResponse(res, "Event not found", 404)
+        createResponse(res, null, 404, "Event not found", true)
         return
       }
 
-      successResponse(res, event)
+      createResponse(res, event, 200, "Event updated succesfully")
     } catch (error: any) {
       console.error("Update event error:", error)
       if (error.message.includes("already exists")) {
-        errorResponse(res, error.message, 409)
+        createResponse(res, error, 409, error.message, true)
         return
       }
-      errorResponse(res, "Failed to update event", 500)
+      createResponse(res, null, 500, "Failed to update event", true)
     }
   }
 
@@ -91,14 +95,14 @@ export class EventController {
       const event = await eventService.updateDates(id, new Date(startDate), new Date(endDate))
 
       if (!event) {
-        errorResponse(res, "Event not found", 404)
+        createResponse(res, null, 404, "Event not found", true)
         return
       }
 
-      successResponse(res, event)
+      createResponse(res, event, 200, "Event dates updated succesfully", false)
     } catch (error) {
       console.error("Update event dates error:", error)
-      errorResponse(res, "Failed to update event dates", 500)
+      createResponse(res, null, 500, "Failed to update event dates", true)
     }
   }
 
@@ -106,10 +110,10 @@ export class EventController {
     try {
       const { id } = req.params
       await eventService.delete(id)
-      successResponse(res, { message: "Event deleted successfully" })
+      createResponse(res, {message: "Event deleted succesfully"})
     } catch (error) {
       console.error("Delete event error:", error)
-      errorResponse(res, "Failed to delete event", 500)
+      createResponse(res, error, 500, "Failed to delete event", true)
     }
   }
 }

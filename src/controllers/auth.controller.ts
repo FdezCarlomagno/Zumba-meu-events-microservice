@@ -1,6 +1,6 @@
 import type { Request, Response } from "express"
 import { AuthService } from "../services/auth.service"
-import { successResponse, errorResponse } from "../utils/responses"
+import { createResponse } from "../utils/responses"
 import type { LoginRequest } from "../types"
 
 const authService = new AuthService()
@@ -13,14 +13,14 @@ export class AuthController {
       const result = await authService.login(credentials)
 
       if (!result) {
-        errorResponse(res, "Invalid username or password", 401)
+        createResponse(res, [], 401, "Invalid username or password", true)
         return
       }
 
-      successResponse(res, result)
+      createResponse(res, result, 200, "Login successful", false)
     } catch (error) {
       console.error("Login error:", error)
-      errorResponse(res, "Login failed", 500)
+      createResponse(res, error, 500, "Login failed", true)
     }
   }
 }
