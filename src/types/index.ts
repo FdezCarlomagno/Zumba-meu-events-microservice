@@ -1,4 +1,4 @@
-export type EventStatus = "upcoming" | "live" | "finished" | "none"
+export type EventStatus = "upcoming" | "live" | "finished" | "none" | "cancelled"
 
 export interface ApiResponse<T> {
   error: boolean,
