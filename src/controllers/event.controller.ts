@@ -22,7 +22,7 @@ export class EventController {
       const event = await eventService.getById(id, false)
 
       if (!event) {
-        createResponse(res, null, 404, "Event not found", true)
+        createResponse(res, null, 404, `Event with id ${id}`, true)
         return
       }
 
@@ -72,7 +72,7 @@ export class EventController {
       const event = await eventService.update(id, eventData)
 
       if (!event) {
-        createResponse(res, null, 404, "Event not found", true)
+        createResponse(res, null, 404, `Event with id ${id}`, true)
         return
       }
 
