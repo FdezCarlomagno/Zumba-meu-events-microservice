@@ -10,7 +10,7 @@ const eventBaseSchema = z.object({
   description: z.string().min(1, "Description is required"),
   startDate: z.string().datetime("Invalid start date format"),
   endDate: z.string().datetime("Invalid end date format"),
-  status: z.enum(["draft", "upcoming", "past", "cancelled"]),
+  status: z.enum(["upcoming", "live", "finished", "cancelled", "none"]),
   location: z.string().max(255).nullable().optional(),
   ctaText: z.string().max(100).nullable().optional(),
   ctaUrl: z.string().url("Invalid URL format").max(500).nullable().optional(),
