@@ -19,10 +19,10 @@ export class EventController {
   async getById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const event = await eventService.getById(id, false)
+      const event = await eventService.getById(id)
 
       if (!event) {
-        createResponse(res, null, 404, `Event with id ${id}`, true)
+        createResponse(res, null, 404, `Event with id ${id} not found`, true)
         return
       }
 
@@ -34,27 +34,27 @@ export class EventController {
   }
 
 
- async create(req: AuthRequest, res: Response): Promise<void> {
-  try {
-    const eventData = {
-      ...req.body,
-      startDate: new Date(req.body.startDate),
-      endDate: new Date(req.body.endDate),
+  async create(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const eventData = {
+        ...req.body,
+        startDate: new Date(req.body.startDate),
+        endDate: new Date(req.body.endDate),
+      }
+
+      const event = await eventService.create(eventData)
+      createResponse(res, event, 201, "Event created successfully")
+    } catch (error: any) {
+      console.error("Create event error:", error)
+
+      if (error.message.includes("already exists")) {
+        createResponse(res, null, 409, error.message, true)
+        return
+      }
+
+      createResponse(res, null, 500, "Failed to create event", true)
     }
-
-    const event = await eventService.create(eventData)
-    createResponse(res, event, 201, "Event created successfully")
-  } catch (error: any) {
-    console.error("Create event error:", error)
-
-    if (error.message.includes("already exists")) {
-      createResponse(res, null, 409, error.message, true)
-      return
-    }
-
-    createResponse(res, null, 500, "Failed to create event", true)
   }
-}
 
 
   async update(req: AuthRequest, res: Response): Promise<void> {
@@ -69,23 +69,35 @@ export class EventController {
         eventData.endDate = new Date(req.body.endDate)
       }
 
-      const event = await eventService.update(id, eventData)
+      const { event, error } = await eventService.update(id, eventData)
 
-      if (!event) {
-        createResponse(res, null, 404, `Event with id ${id}`, true)
+      if (error) {
+        console.error("Supabase error:", error)
+
+        // No encontrado
+        if (error.code === "PGRST116") {
+          createResponse(res, null, 404, `Event with id ${id} not found`, true)
+          return
+        }
+
+        // Conflicto (slug duplicado)
+        if (error.code === "23505") {
+          createResponse(res, error, 409, error.message, true)
+          return
+        }
+
+        // Otros errores
+        createResponse(res, error, 500, "Supabase update error", true)
         return
       }
 
-      createResponse(res, event, 200, "Event updated succesfully")
-    } catch (error: any) {
-      console.error("Update event error:", error)
-      if (error.message.includes("already exists")) {
-        createResponse(res, error, 409, error.message, true)
-        return
-      }
+      createResponse(res, event, 200, "Event updated successfully")
+    } catch (error) {
+      console.error("Update event fatal error:", error)
       createResponse(res, null, 500, "Failed to update event", true)
     }
   }
+
 
   async updateDates(req: AuthRequest, res: Response): Promise<void> {
     try {

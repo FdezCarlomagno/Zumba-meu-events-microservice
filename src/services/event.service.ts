@@ -1,3 +1,4 @@
+import { PostgrestError } from "@supabase/supabase-js"
 import { supabase } from "../config/database"
 import type { Event } from "../types"
 import { mapEventFromDb, mapEventToDb } from "../utils/mappers"
@@ -17,12 +18,8 @@ export class EventService {
     return data.map(mapEventFromDb)
   }
 
-  async getById(id: string, includePrivate = false): Promise<Event | null> {
+  async getById(id: string): Promise<Event | null> {
     let query = supabase.from("events").select("*").eq("id", id)
-
-    if (!includePrivate) {
-      query = query.neq("status", "draft")
-    }
 
     const { data, error } = await query.single()
 
@@ -51,23 +48,29 @@ export class EventService {
     return mapEventFromDb(data)
   }
 
-  async update(id: string, eventData: Partial<Event>): Promise<Event | null> {
+  async update(
+    id: string,
+    eventData: Partial<Event>
+  ): Promise<{ event: Event | null; error: PostgrestError | null }> {
     const dbEvent = mapEventToDb(eventData)
 
-    const { data, error } = await supabase.from("events").update(dbEvent).eq("id", id).select().single()
+    const { data, error } = await supabase
+      .from("events")
+      .update(dbEvent)
+      .eq("id", id)
+      .select()
+      .single()
 
     if (error) {
-      if (error.code === "PGRST116") {
-        return null
-      }
-      if (error.code === "23505") {
-        throw new Error("Event with this slug already exists")
-      }
-      throw new Error(`Failed to update event: ${error.message}`)
+      return { event: null, error }
     }
 
-    return mapEventFromDb(data)
+    return {
+      event: mapEventFromDb(data) as Event,
+      error: null,
+    }
   }
+
 
   async updateDates(id: string, startDate: Date, endDate: Date): Promise<Event | null> {
     const { data, error } = await supabase
